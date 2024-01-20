@@ -19,7 +19,7 @@ False                       { yylval = "false"; return FALSE; }
 \,                          { return COMMA; }
 \=                          { yylval = " = "; return EQUAL; }
 \;                          { return SEMICOLON; }
-[0-9]+                      { yylval = std::string(yytext); return NUMBER; }
+[-]?[0-9]+                  { yylval = std::string(yytext); return NUMBER; }
 [a-zA-Z][a-zA-Z0-9]*        { yylval = std::string(yytext); return VAR; }
 \n                          { return EOL; }
 .                           { return EOL; }
