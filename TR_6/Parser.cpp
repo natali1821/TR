@@ -4,7 +4,7 @@
 void Parser::scan()
 {
     std::regex variableRegex("\\b([a-zA-Z_]\\w*)\\b");
-    std::regex numberRegex("\\b\\d+\\b");
+    std::regex numberRegex("[-]?[0-9]+");
 
     if (token != ERROR)
     {
@@ -106,7 +106,7 @@ void Parser::decl() {
 void Parser::assign() {
 
     if (token == VAR) {
-        type == INT ? variables.insert(std::make_pair(tmpName, 0)) : variables.insert(std::make_pair(tmpName, false)); // нулевая инициализация
+        type == INT ? variables.insert(std::make_pair(tmpName, 0)) : variables.insert(std::make_pair(tmpName, false)); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         scan();
         assign();
     }
@@ -195,20 +195,20 @@ int Parser::calc() {
 
 void Parser::parse()
 {
-    // "чистка" строки
+    // "пїЅпїЅпїЅпїЅпїЅпїЅ" пїЅпїЅпїЅпїЅпїЅпїЅ
     std::getline(std::cin, input);
     input.erase(std::remove_if(input.begin(), input.end(), ::isspace), input.end());
     input.erase(std::remove_if(input.begin(), input.end(), [](char c) {
         return c == '\r' || c == '\t' || c == '\n';
         }), input.end());
 
-    // разбор строки
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     scan();
     while (token != ERROR) {
         decl();
     }
 
-    // вывод переменных
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     for (const auto& var: variables) {
         std::visit([&var](auto&& value) {
             using T = std::decay_t<decltype(value)>;
