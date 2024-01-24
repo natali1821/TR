@@ -8,21 +8,16 @@
 #include <iostream>
 #include <variant>
 #include <string>
-#include <unordered_map>
-
-std::map<std::string, std::variant<int, bool>> variables;
+#include <map>
 
 using namespace antlr4;
 
 class MyListener : public gramBaseListener {
 public:
 
-    enum TYPE {
-        INT,
-        BOOL
-    };
+    std::map<std::string, std::variant<int, bool>> variables;
 
-    TYPE type;
+    int type;
     int calcValue;
     int countValue;
     std::variant<int, bool> tmpValue;
@@ -35,10 +30,10 @@ public:
 
     void enterType(gramParser::TypeContext *ctx) {
         if (ctx->INT() != nullptr) {
-            type = INT;
+            type = gramParser::INT;
         }
         else if (ctx->BOOL() != nullptr) {
-            type = BOOL;
+            type = gramParser::BOOL;
         }
     }
 
@@ -50,12 +45,13 @@ public:
     }
 
     void enterAssign(gramParser::AssignContext *ctx) {
+
         if (ctx->VAR() != nullptr) {
             tmpName = ctx->VAR()->getText();
-            if (type == INT) {
+            if (type == gramParser::INT) {
                 variables[tmpName] = 0;
             }
-            else if (type == BOOL) {
+            else if (type == gramParser::BOOL) {
                 variables[tmpName] = false;
             }
             
@@ -71,9 +67,17 @@ public:
     void exitValue(gramParser::ValueContext *ctx) {
         
         if (ctx->calc() != nullptr) {
-            calcValue += countValue;
-            tmpValue = calcValue;
+            if (type == gramParser::INT) {
+                calcValue += countValue;
+                tmpValue = calcValue;
+            }
+            else {
+                throw std::string{"Boolean variables must be initialized with a boolean value"};
+            }     
+        } else if (type == gramParser::INT) {
+            throw std::string{"Integer variables must be initialized with a number"}; 
         }
+        
          if (ctx->TRUE() != nullptr) {
             tmpValue = true;
         } 
@@ -98,19 +102,26 @@ int main() {
     tree::ParseTree* tree = parser.decl();
 
     MyListener listener;
+
+    try {
     
     // Пример использования Listener
-    tree::ParseTreeWalker::DEFAULT.walk((antlr4::tree::ParseTreeListener*)&listener, tree);
+        tree::ParseTreeWalker::DEFAULT.walk((antlr4::tree::ParseTreeListener*)&listener, tree);
 
-    for (const auto& var: variables) {
-        std::visit([&var](auto&& value) {
-            using T = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<T, int>)
-                std::cout << "int" << " " << var.first << " = " << value << std::endl;
-            if constexpr (std::is_same_v<T, bool>)
-                std::cout << "bool" << " " << var.first << " = " << std::boolalpha << value << std::endl;
-
-            }, var.second);
+        for (const auto& var: listener.variables) {
+            std::visit([&var](auto&& value) {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<T, int>)
+                    std::cout << "int" << " " << var.first << " = " << value << std::endl;
+                if constexpr (std::is_same_v<T, bool>)
+                    std::cout << "bool" << " " << var.first << " = " << std::boolalpha << value << std::endl;
+                }, var.second);
+        }
+    }
+    catch (std::string error_message)
+    {
+        std::cout << error_message << std::endl;
+        return -1;
     }
 
     return 0;
